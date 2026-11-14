@@ -13,6 +13,10 @@ pub enum NextCommand {
 }
 
 pub fn process_subcommand(args: &[String]) -> Result<NextCommand, Error> {
+    if args.get(2) == None {
+        return Err(Error::InvalidArguments);
+    }
+
     match args[1].as_str() {
         "get" => Ok(NextCommand::FetchAndBuild {
             package: args[2].to_string(),
