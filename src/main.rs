@@ -1,8 +1,8 @@
-// The rei package manager
-// A zero bloat package manager designed to work on all linux distros
-// Default package manager of Nixel-Linux
-// Part of Buchemium Coreutils project
-
+/// The rei package manager
+/// A zero bloat package manager designed to work on all linux distros
+/// Default package manager of Nixel-Linux
+/// Part of Buchemium Coreutils project
+/// Created by Azure-6-lgtm (Ujan Barman)
 mod cli;
 mod commands;
 mod error;
@@ -14,11 +14,12 @@ use std::env;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    if run().is_err() {
+    if let Err(e) = run() {
+        eprintln!("{}", e);
         return ExitCode::from(1);
     }
 
-    return ExitCode::from(0);
+    ExitCode::from(0)
 }
 
 fn run() -> Result<(), error::Error> {
@@ -26,32 +27,27 @@ fn run() -> Result<(), error::Error> {
 
     if args.len() < 2 {
         eprintln!("Usage: rei <subcommand> <args_of_subcommand>");
-        return Err(error::Error::InvalidArguments); // when run it prints Error: InvalidArguments, how fix?
+        return Err(error::Error::InvalidArguments);
     }
 
-    init_rei_subsystem(process_subcommand(&args));
-
-    return Ok(());
+    let next_command = process_subcommand(&args)?;
+    init_rei_subsystem(next_command)
 }
 
-fn init_rei_subsystem(next_command: Result<cli::NextCommand, error::Error>) {
+fn init_rei_subsystem(next_command: cli::NextCommand) -> Result<(), error::Error> {
     match next_command {
-        Err(error::Error::InvalidSubcommand) => eprintln!("rei: Invalid subcommand"),
-        Err(error::Error::InvalidArguments) => eprintln!("rei: Invalid arguments"),
-        Ok(something) => match something {
-            NextCommand::FetchAndBuild { package } => commands::get::get(package),
-            NextCommand::FetchAndBinaryOnly { package } => {}
-            NextCommand::RemovePackage { package } => {}
-            NextCommand::SyncIndex => {}
-            NextCommand::Upgrade {
-                package: Some(package),
-            } => {}
-            NextCommand::Upgrade { package: None } => {}
-            NextCommand::ListPackages => {}
-            NextCommand::InfoPackage { package } => {}
-            NextCommand::CheckManifest { manifest } => {}
-            NextCommand::NewPackageProject { name: Some(name) } => {}
-            NextCommand::NewPackageProject { name: None } => {}
-        },
+        NextCommand::FetchAndBuild { package } => commands::get::get_package(package),
+        NextCommand::FetchAndBinaryOnly { package } => commands::bin::get_binary(package),
+        NextCommand::RemovePackage { package } => commands::remove::remove_package(package),
+        NextCommand::SyncIndex => commands::sync::sync_index(),
+        NextCommand::Upgrade {
+            package: Some(package),
+        } => commands::upgrade::upgrade_package(package),
+        NextCommand::Upgrade { package: None } => commands::upgrade::upgrade_package(package),
+        NextCommand::ListPackages => commands::list::list_packages(),
+        NextCommand::InfoPackage { package } => commands::info::info_package(package),
+        NextCommand::CheckManifest { manifest } => commands::check::check_manifest(manifest),
+        NextCommand::NewPackageProject { name: Some(name) } => commands::new::new_project(name),
+        NextCommand::NewPackageProject { name: None } => commands::new::new_project(name),
     }
 }
