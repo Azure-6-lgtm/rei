@@ -7,6 +7,7 @@ mod cli;
 mod commands;
 mod error;
 mod manifest;
+mod rei_filesystem;
 
 use cli::process_subcommand;
 use cli::NextCommand;
@@ -42,12 +43,12 @@ fn init_rei_subsystem(next_command: cli::NextCommand) -> Result<(), error::Error
         NextCommand::SyncIndex => commands::sync::sync_index(),
         NextCommand::Upgrade {
             package: Some(package),
-        } => commands::upgrade::upgrade_package(package),
-        NextCommand::Upgrade { package: None } => commands::upgrade::upgrade_package(package),
+        } => commands::upgrade::upgrade_package(Some(package)),
+        NextCommand::Upgrade { package: None } => commands::upgrade::upgrade_package(None),
         NextCommand::ListPackages => commands::list::list_packages(),
         NextCommand::InfoPackage { package } => commands::info::info_package(package),
         NextCommand::CheckManifest { manifest } => commands::check::check_manifest(manifest),
-        NextCommand::NewPackageProject { name: Some(name) } => commands::new::new_project(name),
-        NextCommand::NewPackageProject { name: None } => commands::new::new_project(name),
+        NextCommand::NewPackageProject { name: Some(name) } => commands::new::new_project(Some(name)),
+        NextCommand::NewPackageProject { name: None } => commands::new::new_project(None),
     }
 }
